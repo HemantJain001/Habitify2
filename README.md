@@ -14,9 +14,10 @@ A comprehensive personal productivity application built with Next.js 15, featuri
 
 ### 🧠 AI & Analytics
 - **AI Coach**: Intelligent productivity guidance and insights
-- **Voice AI Integration**: Real-time voice assistant powered by OmniDimension
+- **OmniDimension Voice AI**: Real-time voice assistant with advanced conversational capabilities
 - **Progress Analytics**: Daily/weekly progress visualization with Recharts
 - **Streak Tracking**: Gamified consistency monitoring
+- **Smart Insights**: AI-powered productivity recommendations
 
 ### 🔐 Authentication & Security
 - **NextAuth.js**: Secure authentication with multiple providers
@@ -120,8 +121,9 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 GITHUB_ID="your-github-client-id"
 GITHUB_SECRET="your-github-secret"
 
-# OmniDimension AI (optional)
-OMNIDIMENSION_SECRET_KEY="your-omnidimension-key"
+# OmniDimension AI (for voice assistant)
+OMNIDIMENSION_SECRET_KEY="5a648d023a32bb89dad2f8036e103d97"
+OMNIDIMENSION_WIDGET_URL="https://backend.omnidim.io/web_widget.js"
 ```
 
 ### 4. Database Setup
@@ -210,19 +212,84 @@ npm run db:reset     # Reset database (WARNING: Deletes all data)
 - Behavior trend analysis
 - Interactive charts and graphs
 
+## 🎙️ OmniDimension Voice AI Integration
+
+### Overview
+Habitify features advanced voice AI capabilities powered by **OmniDimension**, providing users with an intelligent conversational assistant that enhances productivity and personal development.
+
+### Implementation Details
+
+#### Widget Integration
+```javascript
+// Integrated in layout.tsx
+<script 
+  id="omnidimension-web-widget" 
+  async 
+  src="https://backend.omnidim.io/web_widget.js?secret_key=5a648d023a32bb89dad2f8036e103d97"
+></script>
+```
+
+#### Key Features
+- **Real-time Voice Interaction**: Natural conversation with AI assistant
+- **Context-Aware Responses**: AI understands user's productivity context
+- **Multi-language Support**: Supports various languages for global users
+- **Seamless Integration**: No disruption to existing UI/UX flow
+- **Privacy-First**: Secure voice processing with data protection
+
+#### Voice AI Capabilities
+- **Task Management**: "Add a new task for tomorrow"
+- **Progress Queries**: "How's my productivity this week?"
+- **Mood Tracking**: "I'm feeling stressed today"
+- **Goal Setting**: "Help me plan my fitness goals"
+- **Data Insights**: "Show me my behavior patterns"
+
+#### Technical Implementation
+- **Widget Placement**: Bottom-right corner for easy access
+- **Async Loading**: Non-blocking integration for optimal performance
+- **API Integration**: Connects with Habitify's data through secure endpoints
+- **Real-time Processing**: Instant voice-to-text and response generation
+
+#### Configuration
+```typescript
+// Environment variables for OmniDimension
+OMNIDIMENSION_SECRET_KEY="your-secret-key"
+OMNIDIMENSION_WIDGET_URL="https://backend.omnidim.io/web_widget.js"
+```
+
+#### Benefits for Users
+1. **Hands-free Interaction**: Perfect for busy professionals
+2. **Natural Communication**: Talk to your productivity app like a personal coach
+3. **Instant Feedback**: Get immediate insights and recommendations
+4. **Accessibility**: Voice interaction improves app accessibility
+5. **Productivity Boost**: Quick voice commands save time
+
+### Usage Examples
+```
+User: "How many tasks did I complete this week?"
+AI: "You've completed 23 tasks this week, which is 15% more than last week!"
+
+User: "I'm feeling overwhelmed with my workload"
+AI: "I understand. Let me suggest breaking down your tasks into smaller chunks. Would you like me to help prioritize them?"
+
+User: "Add a workout session for tomorrow morning"
+AI: "I've added 'Workout session' to your muscle category for tomorrow morning. Keep building that consistency!"
+```
+
 ## 🤖 AI Integration
 
 ### Voice AI Assistant
-- Real-time voice interaction using OmniDimension
-- Context-aware productivity coaching
-- Personalized insights based on user data
-- Integrated seamlessly into the dashboard
+- Real-time voice interaction using OmniDimension platform
+- Context-aware productivity coaching with natural language processing
+- Personalized insights based on user data and behavior patterns
+- Integrated seamlessly into the dashboard for hands-free interaction
+- Multi-modal support: voice, text, and visual feedback
 
 ### AI Coach Features
-- Productivity pattern analysis
-- Personalized recommendations
-- Goal setting assistance
-- Motivational support
+- Productivity pattern analysis and trend identification
+- Personalized recommendations based on user behavior
+- Goal setting assistance with SMART goal framework
+- Motivational support and progress celebration
+- Proactive suggestions for productivity improvement
 
 ## 🔐 Authentication Flow
 
@@ -269,12 +336,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- [Next.js](https://nextjs.org/) for the amazing framework
-- [Prisma](https://prisma.io/) for database management
-- [NextAuth.js](https://next-auth.js.org/) for authentication
-- [Tailwind CSS](https://tailwindcss.com/) for styling
-- [Recharts](https://recharts.org/) for data visualization
-- [OmniDimension](https://omnidim.io/) for voice AI integration
+- [Next.js](https://nextjs.org/) for the amazing React framework
+- [Prisma](https://prisma.io/) for type-safe database management
+- [NextAuth.js](https://next-auth.js.org/) for secure authentication
+- [Tailwind CSS](https://tailwindcss.com/) for utility-first styling
+- [Recharts](https://recharts.org/) for beautiful data visualization
+- [OmniDimension](https://omnidim.io/) for advanced voice AI integration and conversational capabilities
+- [TanStack Query](https://tanstack.com/query) for powerful data fetching and state management
+- [Lucide React](https://lucide.dev/) for beautiful and consistent icons
 
 ## 📞 Support
 

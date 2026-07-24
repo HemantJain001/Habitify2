@@ -24,6 +24,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const omniSecret = process.env.NEXT_PUBLIC_OMNIDIMENSION_SECRET_KEY;
+
   return (
     <html lang="en">
       <body
@@ -34,13 +36,14 @@ export default function RootLayout({
             {children}
           </AuthProvider>
         </Providers>
-        
-        {/* OmniDimension Voice AI Widget */}
-        <script 
-          id="omnidimension-web-widget" 
-          async 
-          src="https://backend.omnidim.io/web_widget.js?secret_key=5a648d023a32bb89dad2f8036e103d97"
-        ></script>
+
+        {omniSecret ? (
+          <script
+            id="omnidimension-web-widget"
+            async
+            src={`https://backend.omnidim.io/web_widget.js?secret_key=${omniSecret}`}
+          />
+        ) : null}
       </body>
     </html>
   );

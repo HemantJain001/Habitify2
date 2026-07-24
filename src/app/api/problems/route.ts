@@ -99,14 +99,15 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Update user stats
-    await prisma.userStats.update({
+    await prisma.userStats.upsert({
       where: { userId: session.user.id },
-      data: {
-        totalProblemsAnalyzed: {
-          increment: 1
-        }
-      }
+      create: {
+        userId: session.user.id,
+        totalProblemsAnalyzed: 1,
+      },
+      update: {
+        totalProblemsAnalyzed: { increment: 1 },
+      },
     })
 
     return NextResponse.json({ problemEntry }, { status: 201 })

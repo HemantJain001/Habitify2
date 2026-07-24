@@ -87,7 +87,8 @@ export function StatsDashboard({ className = '' }: StatsDashboardProps) {
   })
 
   const { data: tasksData } = useTasks()
-  
+  const { data: powerSystemData } = usePowerSystemTodos()
+
   // Fetch analytics data
   useEffect(() => {
     fetchAnalyticsData()
@@ -109,23 +110,22 @@ export function StatsDashboard({ className = '' }: StatsDashboardProps) {
           longestStreak: 0,
           totalPowerSystem: 0
         })
+      } else if (tasksData?.tasks) {
+        generateFallbackFromLocalData()
       }
     } catch (error) {
       console.error('Error fetching analytics:', error)
-      // Fallback to generating mock data
       if (tasksData?.tasks) {
-        generateDailyStats()
-        generateWeeklyStats()
-        generatePowerSystemBreakdown()
-        generateTotalStats()
+        generateFallbackFromLocalData()
       }
     }
   }
 
-  const generateDailyStats = () => {
+  const generateFallbackFromLocalData = () => {
+    const todos = powerSystemData?.powerSystemTodos || []
     const last14Days = []
     const today = new Date()
-    
+
     for (let i = 13; i >= 0; i--) {
       const date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000)
       const dateString = date.toISOString().split('T')[0]
@@ -133,77 +133,86 @@ export function StatsDashboard({ className = '' }: StatsDashboardProps) {
         const taskDate = new Date(task.createdAt).toISOString().split('T')[0]
         return taskDate === dateString
       }) || []
-      
+
+      const dayTodos = todos.filter((todo: any) => {
+        const todoDate = new Date(todo.date).toISOString().split('T')[0]
+        return todoDate === dateString
+      })
+
       const completedTasks = dayTasks.filter((task: any) => task.completed).length
       const totalTasks = dayTasks.length
-      
+      const brainTodos = dayTodos.filter((t: any) => t.category === 'brain' && t.completed).length
+      const muscleTodos = dayTodos.filter((t: any) => t.category === 'muscle' && t.completed).length
+      const moneyTodos = dayTodos.filter((t: any) => t.category === 'money' && t.completed).length
+
       last14Days.push({
         date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         tasksCompleted: completedTasks,
         tasksTotal: totalTasks,
         completionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
-        brainTodos: Math.floor(Math.random() * 5), // Mock data - replace with actual power system data
-        muscleTodos: Math.floor(Math.random() * 5),
-        moneyTodos: Math.floor(Math.random() * 5),
-        powerSystemTotal: Math.floor(Math.random() * 12)
+        brainTodos,
+        muscleTodos,
+        moneyTodos,
+        powerSystemTotal: dayTodos.length
       })
     }
-    
-    setDailyStats(last14Days)
-  }
 
-  const generateWeeklyStats = () => {
+    setDailyStats(last14Days)
+
     const last8Weeks = []
-    const today = new Date()
-    
     for (let i = 7; i >= 0; i--) {
       const weekStart = new Date(today.getTime() - i * 7 * 24 * 60 * 60 * 1000)
       const weekEnd = new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000)
-      
+
       const weekTasks = tasksData?.tasks?.filter((task: any) => {
         const taskDate = new Date(task.createdAt)
         return taskDate >= weekStart && taskDate <= weekEnd
       }) || []
-      
+
+      const weekTodos = todos.filter((todo: any) => {
+        const todoDate = new Date(todo.date)
+        return todoDate >= weekStart && todoDate <= weekEnd
+      })
+
       const completedTasks = weekTasks.filter((task: any) => task.completed).length
       const totalTasks = weekTasks.length
-      
+
       last8Weeks.push({
         week: `Week ${8 - i}`,
         totalTasks,
         completedTasks,
         completionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
-        powerSystemCompleted: Math.floor(Math.random() * 50), // Mock data
-        streak: Math.floor(Math.random() * 7)
+        powerSystemCompleted: weekTodos.filter((t: any) => t.completed).length,
+        streak: 0
       })
     }
-    
+
     setWeeklyStats(last8Weeks)
-  }
 
-  const generatePowerSystemBreakdown = () => {
-    // Mock power system data - replace with actual data
-    const breakdown = [
-      { name: 'Brain', value: 35, color: COLORS.brain },
-      { name: 'Muscle', value: 25, color: COLORS.muscle },
-      { name: 'Money', value: 20, color: COLORS.money },
-      { name: 'Pending', value: 20, color: '#94a3b8' }
-    ]
-    setPowerSystemBreakdown(breakdown)
-  }
+    const brain = todos.filter((t: any) => t.category === 'brain' && t.completed).length
+    const muscle = todos.filter((t: any) => t.category === 'muscle' && t.completed).length
+    const money = todos.filter((t: any) => t.category === 'money' && t.completed).length
+    const pending = todos.filter((t: any) => !t.completed).length
+    const total = brain + muscle + money + pending || 1
 
-  const generateTotalStats = () => {
+    setPowerSystemBreakdown([
+      { name: 'Brain', value: Math.round((brain / total) * 100), color: COLORS.brain },
+      { name: 'Muscle', value: Math.round((muscle / total) * 100), color: COLORS.muscle },
+      { name: 'Money', value: Math.round((money / total) * 100), color: COLORS.money },
+      { name: 'Pending', value: Math.round((pending / total) * 100), color: '#94a3b8' }
+    ])
+
     const tasks = tasksData?.tasks || []
     const completedTasks = tasks.filter((task: any) => task.completed).length
     const totalTasks = tasks.length
-    
+
     setTotalStats({
       totalTasks,
       completedTasks,
       completionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
-      currentStreak: 7, // Mock data
-      longestStreak: 15, // Mock data
-      totalPowerSystem: 80 // Mock data
+      currentStreak: 0,
+      longestStreak: 0,
+      totalPowerSystem: todos.length
     })
   }
 

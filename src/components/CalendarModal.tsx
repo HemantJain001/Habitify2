@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { X, ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, BookOpen, Target } from 'lucide-react'
-import { cn, type JournalEntry, type PowerSystemTodo, mockJournalEntries } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import type { JournalEntry, PowerSystemTodo } from '@/lib/api'
 
 interface CalendarModalProps {
   isOpen: boolean
@@ -12,7 +13,12 @@ interface CalendarModalProps {
   powerSystemTodos?: PowerSystemTodo[]
 }
 
-export function CalendarModal({ isOpen, onClose, onOpenJournal, journalEntries = mockJournalEntries, powerSystemTodos = [] }: CalendarModalProps) {
+function toDateKey(value: Date | string) {
+  const d = typeof value === 'string' ? new Date(value) : value
+  return d.toISOString().split('T')[0]
+}
+
+export function CalendarModal({ isOpen, onClose, onOpenJournal, journalEntries = [], powerSystemTodos = [] }: CalendarModalProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
@@ -64,7 +70,8 @@ export function CalendarModal({ isOpen, onClose, onOpenJournal, journalEntries =
 
   const hasJournalEntry = (day: number) => {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-    return journalEntries.some(entry => entry.date.toDateString() === date.toDateString())
+    const key = toDateKey(date)
+    return journalEntries.some((entry) => toDateKey(entry.date) === key)
   }
 
   const hasEvents = (day: number) => {
@@ -73,29 +80,10 @@ export function CalendarModal({ isOpen, onClose, onOpenJournal, journalEntries =
 
   const getPowerSystemProgress = (day: number) => {
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-    date.setHours(0, 0, 0, 0)
-    
-    const identities = ['brain', 'muscle', 'money'] as const
-    let totalCompleted = 0
-    let totalGoals = 0
-
-    identities.forEach(identity => {
-      const identityTodos = powerSystemTodos.filter(todo => 
-        todo.identity === identity && todo.isActive
-      )
-      const completed = identityTodos.filter(todo => 
-        todo.completedDates.some(completedDate => {
-          const checkDate = new Date(completedDate)
-          checkDate.setHours(0, 0, 0, 0)
-          return checkDate.getTime() === date.getTime()
-        })
-      ).length
-
-      totalCompleted += completed
-      totalGoals += identityTodos.length
-    })
-
-    return { completed: totalCompleted, total: totalGoals }
+    const key = toDateKey(date)
+    const dayTodos = powerSystemTodos.filter((todo) => toDateKey(todo.date) === key)
+    const completed = dayTodos.filter((todo) => todo.completed).length
+    return { completed, total: dayTodos.length }
   }
 
   const handleDayClick = (day: number) => {
@@ -323,33 +311,21 @@ export function CalendarModal({ isOpen, onClose, onOpenJournal, journalEntries =
               <div className="space-y-3">
                 <h4 className="font-semibold text-gray-900 dark:text-gray-100">Power System</h4>
                 <div className="space-y-2">
-                  {(['brain', 'muscle', 'money'] as const).map(identity => {
+                  {(['brain', 'muscle', 'money'] as const).map((identity) => {
                     const config = {
                       brain: { icon: '🧠', color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/10' },
                       muscle: { icon: '💪', color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/10' },
                       money: { icon: '💰', color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-900/10' }
                     }[identity]
 
-                    const getCompletedTodayCount = () => {
-                      const today = new Date()
-                      today.setHours(0, 0, 0, 0)
-                      return powerSystemTodos
-                        .filter(todo => todo.identity === identity && todo.isActive)
-                        .filter(todo => 
-                          todo.completedDates.some(date => {
-                            const completedDate = new Date(date)
-                            completedDate.setHours(0, 0, 0, 0)
-                            return completedDate.getTime() === today.getTime()
-                          })
-                        ).length
-                    }
-
-                    const getActiveTodosCount = () => {
-                      return powerSystemTodos.filter(todo => todo.identity === identity && todo.isActive).length
-                    }
-
-                    const completed = getCompletedTodayCount()
-                    const total = getActiveTodosCount()
+                    const todayKey = toDateKey(new Date())
+                    const todayTodos = powerSystemTodos.filter(
+                      (todo) =>
+                        todo.category === identity &&
+                        toDateKey(todo.date) === todayKey
+                    )
+                    const completed = todayTodos.filter((todo) => todo.completed).length
+                    const total = todayTodos.length
                     const percentage = total > 0 ? (completed / total) * 100 : 0
 
                     return (

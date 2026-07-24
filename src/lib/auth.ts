@@ -63,6 +63,6 @@ export const authOptions: NextAuthOptions = {
     },
     pages: {
         signIn: "/auth/signin",
-        // Remove signUp as it's not a standard NextAuth page
+        error: "/auth/error",
     },
 }

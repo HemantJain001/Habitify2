@@ -66,20 +66,15 @@ export async function POST(request: NextRequest) {
       mood
     } = await request.json()
 
-    if (!date) {
-      return NextResponse.json(
-        { error: "Date is required" },
-        { status: 400 }
-      )
-    }
+    const entryDate = date || new Date().toISOString().split('T')[0]
 
     // Check if journal entry already exists for this date
     const existingEntry = await prisma.journalEntry.findFirst({
       where: {
         userId: session.user.id,
         date: {
-          gte: new Date(new Date(date).setHours(0, 0, 0, 0)),
-          lt: new Date(new Date(date).setHours(23, 59, 59, 999))
+          gte: new Date(new Date(entryDate).setHours(0, 0, 0, 0)),
+          lt: new Date(new Date(entryDate).setHours(23, 59, 59, 999))
         }
       }
     })
@@ -93,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     const journalEntry = await prisma.journalEntry.create({
       data: {
-        date: new Date(date),
+        date: new Date(entryDate),
         notes: notes || "",
         mood: mood || 5,
         userId: session.user.id,

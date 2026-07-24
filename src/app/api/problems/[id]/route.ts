@@ -3,26 +3,25 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-// GET /api/problems/[id] - Get a specific problem solving entry
+// GET /api/problems/[id]
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    const { id } = await params
 
     const problemEntry = await prisma.problemSolvingEntry.findFirst({
       where: {
-        id: params.id,
-        userId: session.user.id
-      }
+        id,
+        userId: session.user.id,
+      },
     })
 
     if (!problemEntry) {
@@ -42,24 +41,22 @@ export async function GET(
   }
 }
 
-// PUT /api/problems/[id] - Update a problem solving entry
+// PUT /api/problems/[id]
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { 
-      problemBehavior, 
-      triggerPattern, 
+    const { id } = await params
+    const {
+      problemBehavior,
+      triggerPattern,
       isDaily,
       preventiveStrategy,
       wrongPathReaction,
@@ -72,15 +69,14 @@ export async function PUT(
       controlSource,
       actionablePower,
       longTermSolution,
-      isPinned
+      isPinned,
     } = await request.json()
 
-    // First check if the problem entry exists and belongs to the user
     const existingEntry = await prisma.problemSolvingEntry.findFirst({
       where: {
-        id: params.id,
-        userId: session.user.id
-      }
+        id,
+        userId: session.user.id,
+      },
     })
 
     if (!existingEntry) {
@@ -91,24 +87,30 @@ export async function PUT(
     }
 
     const problemEntry = await prisma.problemSolvingEntry.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         problemBehavior: problemBehavior || existingEntry.problemBehavior,
         triggerPattern: triggerPattern || existingEntry.triggerPattern,
         isDaily: isDaily !== undefined ? isDaily : existingEntry.isDaily,
         preventiveStrategy,
-        wrongPathReaction: wrongPathReaction || existingEntry.wrongPathReaction,
-        longTermConsequence: longTermConsequence || existingEntry.longTermConsequence,
-        preferredBehavior: preferredBehavior || existingEntry.preferredBehavior,
+        wrongPathReaction:
+          wrongPathReaction || existingEntry.wrongPathReaction,
+        longTermConsequence:
+          longTermConsequence || existingEntry.longTermConsequence,
+        preferredBehavior:
+          preferredBehavior || existingEntry.preferredBehavior,
         positiveOutcome: positiveOutcome || existingEntry.positiveOutcome,
         problemCategory: problemCategory || existingEntry.problemCategory,
-        emotionalImpact: emotionalImpact !== undefined ? emotionalImpact : existingEntry.emotionalImpact,
+        emotionalImpact:
+          emotionalImpact !== undefined
+            ? emotionalImpact
+            : existingEntry.emotionalImpact,
         copingStrategy,
         controlSource: controlSource || existingEntry.controlSource,
         actionablePower,
         longTermSolution,
         isPinned: isPinned !== undefined ? isPinned : existingEntry.isPinned,
-      }
+      },
     })
 
     return NextResponse.json({ problemEntry })
@@ -121,27 +123,25 @@ export async function PUT(
   }
 }
 
-// DELETE /api/problems/[id] - Delete a problem solving entry
+// DELETE /api/problems/[id]
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // First check if the problem entry exists and belongs to the user
+    const { id } = await params
+
     const existingEntry = await prisma.problemSolvingEntry.findFirst({
       where: {
-        id: params.id,
-        userId: session.user.id
-      }
+        id,
+        userId: session.user.id,
+      },
     })
 
     if (!existingEntry) {
@@ -152,17 +152,18 @@ export async function DELETE(
     }
 
     await prisma.problemSolvingEntry.delete({
-      where: { id: params.id }
+      where: { id },
     })
 
-    // Update user stats
-    await prisma.userStats.update({
+    await prisma.userStats.upsert({
       where: { userId: session.user.id },
-      data: {
-        totalProblemsAnalyzed: {
-          decrement: 1
-        }
-      }
+      create: {
+        userId: session.user.id,
+        totalProblemsAnalyzed: 0,
+      },
+      update: {
+        totalProblemsAnalyzed: { decrement: 1 },
+      },
     })
 
     return NextResponse.json({ success: true })

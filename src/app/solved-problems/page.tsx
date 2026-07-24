@@ -1,63 +1,56 @@
 'use client'
 
 import { useState } from 'react'
+import { AuthGuard } from '@/components/AuthGuard'
 import { SolvedProblemsClient } from '@/components/SolvedProblemsClient'
 import { Sidebar } from '@/components/Sidebar'
 import { TopBar } from '@/components/TopBar'
+import { ProblemSolvingModal } from '@/components/ProblemSolvingModal'
+import { SimpleBehaviorModal } from '@/components/SimpleBehaviorModal'
+import { useUserStats } from '@/lib/hooks'
 import { useRouter } from 'next/navigation'
 
 export default function SolvedProblemsPage() {
   const router = useRouter()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-
-  const handleOpenJournal = () => {
-    router.push('/?journal=true')
-  }
-
-  const handleOpenDashboard = () => {
-    router.push('/')
-  }
-
-  const handleOpenCalendar = () => {
-    // Could open a calendar modal or navigate to calendar page
-    console.log('Calendar clicked')
-  }
-
-  const handleOpenProblemSolving = () => {
-    // Could open problem solving modal or navigate to problem solving page
-    console.log('Problem solving clicked')
-  }
-
-  const handleOpenTrackYourself = () => {
-    // Could open track yourself modal or navigate to track yourself page
-    console.log('Track yourself clicked')
-  }
+  const [problemSolvingOpen, setProblemSolvingOpen] = useState(false)
+  const [trackYourselfOpen, setTrackYourselfOpen] = useState(false)
+  const { data: statsData } = useUserStats()
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-all duration-500">
-      {/* Sidebar */}
-      <Sidebar 
-        onOpenDashboard={handleOpenDashboard}
-        onOpenCalendar={handleOpenCalendar}
-        onOpenProblemSolving={handleOpenProblemSolving}
-        onOpenTrackYourself={handleOpenTrackYourself}
-        onOpenJournal={handleOpenJournal}
-        onCollapseChange={setSidebarCollapsed}
-      />
-
-      {/* Main Content Wrapper */}
-      <div className={`layout-transition ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
-        {/* Top Bar */}
-        <TopBar 
-          streak={0} 
-          onOpenJournal={handleOpenJournal}
+    <AuthGuard>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-all duration-500">
+        <Sidebar
+          onOpenDashboard={() => router.push('/')}
+          onOpenProblemSolving={() => setProblemSolvingOpen(true)}
+          onOpenTrackYourself={() => setTrackYourselfOpen(true)}
+          onOpenJournal={() => router.push('/?journal=true')}
+          onOpenSolvedProblems={() => router.push('/solved-problems')}
+          onCollapseChange={setSidebarCollapsed}
         />
 
-        {/* Main Content */}
-        <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-          <SolvedProblemsClient />
-        </main>
+        <div
+          className={`layout-transition ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}
+        >
+          <TopBar
+            streak={statsData?.streak ?? 0}
+            onOpenJournal={() => router.push('/?journal=true')}
+          />
+
+          <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <SolvedProblemsClient />
+          </main>
+        </div>
+
+        <ProblemSolvingModal
+          isOpen={problemSolvingOpen}
+          onClose={() => setProblemSolvingOpen(false)}
+        />
+        <SimpleBehaviorModal
+          isOpen={trackYourselfOpen}
+          onClose={() => setTrackYourselfOpen(false)}
+        />
       </div>
-    </div>
+    </AuthGuard>
   )
 }

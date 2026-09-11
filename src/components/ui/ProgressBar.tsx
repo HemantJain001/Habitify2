@@ -12,48 +12,50 @@ interface ProgressBarProps extends HTMLAttributes<HTMLDivElement> {
   label?: string
 }
 
-function ProgressBar({ 
-  className, 
-  value, 
-  max = 100, 
-  size = 'md', 
-  variant = 'gradient',
+function ProgressBar({
+  className,
+  value,
+  max = 100,
+  size = 'md',
+  variant = 'default',
   showLabel = false,
   label,
-  ...props 
+  ...props
 }: ProgressBarProps) {
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100)
-  
+
   const sizes = {
     sm: 'h-1',
     md: 'h-1.5',
-    lg: 'h-2'
+    lg: 'h-2',
   }
-  
+
   const variants = {
-    default: 'bg-blue-500',
-    gradient: 'bg-gradient-to-r from-blue-500 to-purple-500'
+    default: 'bg-[var(--accent)]',
+    gradient: 'bg-gradient-to-r from-[var(--accent)] to-amber-400',
   }
 
   return (
-    <div className={cn("w-full", className)} {...props}>
+    <div className={cn('w-full', className)} {...props}>
       {showLabel && (
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-gray-600 dark:text-gray-400">
+          <span className="text-xs text-[var(--fg-muted)]">
             {label || `${value} of ${max} completed`}
           </span>
-          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+          <span className="text-xs font-medium text-[var(--fg)]">
             {Math.round(percentage)}%
           </span>
         </div>
       )}
-      <div className={cn(
-        "w-full bg-gray-200 dark:bg-gray-700 rounded-full",
-        sizes[size]
-      )}>
-        <div 
+      <div
+        className={cn(
+          'w-full bg-[var(--bg-muted)] rounded-full overflow-hidden',
+          sizes[size]
+        )}
+      >
+        <div
           className={cn(
-            "h-full rounded-full transition-all duration-300 ease-out",
+            'h-full rounded-full transition-all duration-500 ease-out',
             variants[variant]
           )}
           style={{ width: `${percentage}%` }}

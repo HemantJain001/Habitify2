@@ -1,6 +1,6 @@
 'use client'
 
-import { Settings, Moon, Sun, Bot, Maximize2 } from 'lucide-react'
+import { Moon, Sun, Bot } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface BottomControlsProps {
@@ -9,45 +9,40 @@ interface BottomControlsProps {
   onOpenAICoach: () => void
 }
 
-export function BottomControls({ darkMode, onToggleDarkMode, onOpenAICoach }: BottomControlsProps) {
+export function BottomControls({
+  darkMode,
+  onToggleDarkMode,
+  onOpenAICoach,
+}: BottomControlsProps) {
   return (
-    <div className="fixed bottom-6 right-6 flex items-center gap-2 glass backdrop-blur-xl border border-white/20 dark:border-gray-800/30 rounded-2xl p-2 shadow-2xl">
-      {/* Settings */}
-      <button 
-        className="p-3 hover:bg-white/60 dark:hover:bg-gray-800/40 rounded-xl transition-all duration-300 group notion-hover"
-        title="Settings"
-      >
-        <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200" />
-      </button>
-
-      {/* Theme Toggle */}
-      <button 
+    <div className="fixed bottom-6 right-6 z-40 flex items-center gap-1 glass rounded-2xl p-1.5 shadow-[var(--shadow-lg)]">
+      <button
+        type="button"
         onClick={onToggleDarkMode}
-        className="p-3 hover:bg-white/60 dark:hover:bg-gray-800/40 rounded-xl transition-all duration-300 group notion-hover"
-        title="Toggle Theme"
+        className="p-2.5 rounded-xl text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--bg-muted)] transition-colors"
+        title="Toggle theme"
+        aria-label="Toggle theme"
       >
         {darkMode ? (
-          <Sun className="w-5 h-5 text-yellow-500 group-hover:text-yellow-600" />
+          <Sun className="w-[18px] h-[18px] text-[var(--accent)]" />
         ) : (
-          <Moon className="w-5 h-5 text-gray-600 group-hover:text-gray-800" />
+          <Moon className="w-[18px] h-[18px]" />
         )}
       </button>
 
-      {/* AI Coach */}
-      <button 
+      <div className="w-px h-6 bg-[var(--border)]" />
+
+      <button
+        type="button"
         onClick={onOpenAICoach}
-        className="p-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-300 group notion-hover"
+        className={cn(
+          'inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all',
+          'bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)] shadow-sm'
+        )}
         title="AI Coach"
       >
-        <Bot className="w-5 h-5 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300" />
-      </button>
-
-      {/* Collapse UI */}
-      <button 
-        className="p-3 hover:bg-white/60 dark:hover:bg-gray-800/40 rounded-xl transition-all duration-300 group notion-hover"
-        title="Collapse UI"
-      >
-        <Maximize2 className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200" />
+        <Bot className="w-4 h-4" />
+        <span className="hidden sm:inline">Coach</span>
       </button>
     </div>
   )

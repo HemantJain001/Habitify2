@@ -10,11 +10,14 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, variant = 'default', error, ...props }, ref) => {
-    const baseClasses = "w-full rounded-lg border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    
+    const baseClasses =
+      'w-full rounded-[10px] text-sm transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]'
+
     const variants = {
-      default: "px-3 py-2 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400",
-      ghost: "bg-transparent border-none text-gray-900 dark:text-gray-100 focus:ring-0 notion-input"
+      default:
+        'px-3.5 py-2.5 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--fg)] placeholder:text-[var(--fg-subtle)] hover:border-[var(--border-strong)]',
+      ghost:
+        'bg-transparent border-none text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus-visible:ring-0 px-0 py-1',
     }
 
     return (
@@ -23,14 +26,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           className={cn(
             baseClasses,
             variants[variant],
-            error && "border-red-500 focus:ring-red-500",
+            error && 'border-[var(--danger)] focus-visible:ring-[var(--danger)]',
             className
           )}
           ref={ref}
           {...props}
         />
         {error && (
-          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
+          <p className="mt-1.5 text-xs text-[var(--danger)]">{error}</p>
         )}
       </div>
     )

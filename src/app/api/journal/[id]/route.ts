@@ -1,46 +1,34 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { NextRequest } from "next/server"
+import { requireUser } from "@/lib/server/requireUser"
+import { jsonError, jsonOk } from "@/lib/server/http"
 import { prisma } from "@/lib/prisma"
 
 // GET /api/journal/[id] - Get a specific journal entry
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
+    const { user, error } = await requireUser()
+    if (error || !user) return error!
 
     const { id } = await params
 
     const journalEntry = await prisma.journalEntry.findFirst({
       where: {
-        id: id,
-        userId: session.user.id
-      }
+        id,
+        userId: user.id,
+      },
     })
 
     if (!journalEntry) {
-      return NextResponse.json(
-        { error: "Journal entry not found" },
-        { status: 404 }
-      )
+      return jsonError("Journal entry not found", 404)
     }
 
-    return NextResponse.json({ journalEntry })
-  } catch (error) {
-    console.error("Get journal entry error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    return jsonOk({ journalEntry })
+  } catch (err) {
+    console.error("Get journal entry error:", err)
+    return jsonError("Internal server error", 500)
   }
 }
 
@@ -50,34 +38,22 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
+    const { user, error } = await requireUser()
+    if (error || !user) return error!
 
     const { id } = await params
-    const { 
-      notes, 
-      mood
-    } = await request.json()
+    const { notes, mood } = await request.json()
 
     // Verify journal entry belongs to user
     const existingEntry = await prisma.journalEntry.findFirst({
       where: {
-        id: id,
-        userId: session.user.id
-      }
+        id,
+        userId: user.id,
+      },
     })
 
     if (!existingEntry) {
-      return NextResponse.json(
-        { error: "Journal entry not found" },
-        { status: 404 }
-      )
+      return jsonError("Journal entry not found", 404)
     }
 
     const updateData: any = {}
@@ -85,62 +61,47 @@ export async function PUT(
     if (mood !== undefined) updateData.mood = mood
 
     const journalEntry = await prisma.journalEntry.update({
-      where: { id: id },
-      data: updateData
+      where: { id },
+      data: updateData,
     })
 
-    return NextResponse.json({ journalEntry })
-  } catch (error) {
-    console.error("Update journal entry error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    return jsonOk({ journalEntry })
+  } catch (err) {
+    console.error("Update journal entry error:", err)
+    return jsonError("Internal server error", 500)
   }
 }
 
 // DELETE /api/journal/[id] - Delete a journal entry
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
+    const { user, error } = await requireUser()
+    if (error || !user) return error!
 
     const { id } = await params
 
     // Verify journal entry belongs to user
     const existingEntry = await prisma.journalEntry.findFirst({
       where: {
-        id: id,
-        userId: session.user.id
-      }
+        id,
+        userId: user.id,
+      },
     })
 
     if (!existingEntry) {
-      return NextResponse.json(
-        { error: "Journal entry not found" },
-        { status: 404 }
-      )
+      return jsonError("Journal entry not found", 404)
     }
 
     await prisma.journalEntry.delete({
-      where: { id: id }
+      where: { id },
     })
 
-    return NextResponse.json({ message: "Journal entry deleted successfully" })
-  } catch (error) {
-    console.error("Delete journal entry error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    return jsonOk({ message: "Journal entry deleted successfully" })
+  } catch (err) {
+    console.error("Delete journal entry error:", err)
+    return jsonError("Internal server error", 500)
   }
 }

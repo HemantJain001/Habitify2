@@ -1,164 +1,243 @@
 'use client'
 
-import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, type ComponentType } from 'react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  LayoutDashboard,
+  CalendarDays,
+  BookOpen,
+  Brain,
+  Puzzle,
+  Rocket,
+  History,
+  BarChart3,
+  Zap,
+} from 'lucide-react'
 import Link from 'next/link'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { cn } from '@/lib/utils'
+import { useAppChrome } from '@/components/layout/AppChrome'
 
-interface SidebarProps {
-  onOpenDashboard?: () => void
-  onOpenCalendar?: () => void
-  onOpenProblemSolving?: () => void
-  onOpenTrackYourself?: () => void
-  onOpenJournal?: () => void
-  onOpenSolvedProblems?: () => void
-  onCollapseChange?: (collapsed: boolean) => void
-}
-
-interface SidebarButtonProps {
-  onClick?: () => void
-  icon: string
+interface NavItem {
+  key: string
   label: string
-  title: string
-  isCollapsed: boolean
+  icon: ComponentType<{ className?: string }>
   href?: string
+  onClick?: () => void
+  active?: boolean
 }
 
-function SidebarButton({ onClick, icon, label, title, isCollapsed, href }: SidebarButtonProps) {
+function NavButton({
+  item,
+  collapsed,
+}: {
+  item: NavItem
+  collapsed: boolean
+}) {
+  const Icon = item.icon
+  const className = cn(
+    'w-full flex items-center rounded-xl text-left transition-colors group',
+    collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
+    item.active
+      ? 'bg-[var(--accent-soft)] text-[var(--fg)]'
+      : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--bg-muted)]'
+  )
+
   const content = (
     <>
-      <span className="text-xl transition-transform duration-300 ease-in-out group-hover:scale-110 flex-shrink-0">{icon}</span>
-      <span className={`text-sm font-semibold text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white sidebar-content-transition whitespace-nowrap ${
-        isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'
-      }`}>
-        {label}
+      <Icon
+        className={cn(
+          'w-[18px] h-[18px] shrink-0',
+          item.active ? 'text-[var(--accent)]' : 'text-[var(--fg-subtle)] group-hover:text-[var(--fg)]'
+        )}
+      />
+      <span
+        className={cn(
+          'text-[13px] font-medium tracking-tight whitespace-nowrap transition-opacity',
+          collapsed ? 'sr-only' : 'opacity-100'
+        )}
+      >
+        {item.label}
       </span>
     </>
   )
 
-  const className = `w-full flex items-center p-3 text-left hover:bg-white/60 dark:hover:bg-gray-800/40 rounded-xl transition-all duration-300 ease-in-out group notion-hover cursor-pointer ${
-    isCollapsed ? 'justify-center' : 'gap-3'
-  }`
-
-  if (href) {
+  if (item.href) {
     return (
-      <Link href={href} className={className} title={title}>
+      <Link href={item.href} className={className} title={item.label}>
         {content}
       </Link>
     )
   }
 
   return (
-    <button
-      onClick={onClick}
-      className={className}
-      title={title}
-    >
+    <button type="button" onClick={item.onClick} className={className} title={item.label}>
       {content}
     </button>
   )
 }
 
-export function Sidebar({ onOpenDashboard, onOpenCalendar, onOpenProblemSolving, onOpenTrackYourself, onOpenJournal, onOpenSolvedProblems, onCollapseChange }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+export function Sidebar({
+  onCollapseChange,
+}: {
+  onCollapseChange?: (collapsed: boolean) => void
+}) {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const journalOpen = searchParams.get('journal') === 'true'
+  const {
+    openCalendar,
+    openJournal,
+    openProblem,
+    openTrack,
+    goHome,
+    setSidebarCollapsed,
+  } = useAppChrome()
 
-  const handleToggleCollapse = () => {
-    const newCollapsedState = !isCollapsed
-    setIsCollapsed(newCollapsedState)
-    onCollapseChange?.(newCollapsedState)
+  const [collapsed, setCollapsed] = useState(false)
+
+  const toggle = () => {
+    const next = !collapsed
+    setCollapsed(next)
+    setSidebarCollapsed(next)
+    onCollapseChange?.(next)
   }
 
+  const todayItems: NavItem[] = [
+    {
+      key: 'today',
+      label: 'Today',
+      icon: LayoutDashboard,
+      onClick: goHome,
+      active: pathname === '/' && !journalOpen,
+    },
+    {
+      key: 'journal',
+      label: 'Journal',
+      icon: BookOpen,
+      onClick: openJournal,
+      active: pathname === '/' && journalOpen,
+    },
+    {
+      key: 'calendar',
+      label: 'Calendar',
+      icon: CalendarDays,
+      onClick: openCalendar,
+    },
+  ]
+
+  const captureItems: NavItem[] = [
+    {
+      key: 'track',
+      label: 'Log behavior',
+      icon: Rocket,
+      onClick: openTrack,
+    },
+    {
+      key: 'problem',
+      label: 'Solve a problem',
+      icon: Brain,
+      onClick: openProblem,
+    },
+  ]
+
+  const reviewItems: NavItem[] = [
+    {
+      key: 'solved',
+      label: 'Solved problems',
+      icon: Puzzle,
+      href: '/solved-problems',
+      active: pathname === '/solved-problems',
+    },
+    {
+      key: 'history',
+      label: 'Behavior history',
+      icon: History,
+      href: '/behavior-history',
+      active: pathname === '/behavior-history',
+    },
+    {
+      key: 'stats',
+      label: 'Statistics',
+      icon: BarChart3,
+      href: '/stats',
+      active: pathname === '/stats',
+    },
+  ]
+
   return (
-    <div className={`fixed left-0 top-0 h-full z-40 glass backdrop-blur-xl border-r border-white/20 dark:border-gray-800/30 shadow-xl sidebar-transition ${
-      isCollapsed ? 'w-16' : 'w-64'
-    } hidden lg:block`}>
-      {/* Header */}
-      <div className={`h-16 border-b border-white/10 dark:border-gray-800/30 flex items-center bg-white/50 dark:bg-gray-900/50 ${
-        isCollapsed ? 'justify-center px-2' : 'justify-between px-4'
-      }`}>
-        <h2 className={`text-base font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent sidebar-content-transition ${
-          isCollapsed ? 'opacity-0 scale-90 w-0' : 'opacity-100 scale-100 w-auto'
-        }`}>
-          Attack Mode
-        </h2>
+    <aside
+      className={cn(
+        'fixed left-0 top-0 h-full z-40 hidden lg:flex flex-col glass border-r border-[var(--border)] sidebar-transition',
+        collapsed ? 'w-[72px]' : 'w-[240px]'
+      )}
+    >
+      <div
+        className={cn(
+          'h-14 border-b border-[var(--border)] flex items-center',
+          collapsed ? 'justify-center px-2' : 'justify-between px-3'
+        )}
+      >
+        {!collapsed && (
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-[var(--accent)] text-[var(--accent-fg)] flex items-center justify-center">
+              <Zap className="w-4 h-4" strokeWidth={2.5} />
+            </div>
+            <div className="min-w-0">
+              <p className="font-display text-sm font-bold text-[var(--fg)] leading-none">
+                AttackMode
+              </p>
+              <p className="text-[10px] text-[var(--fg-subtle)] mt-1 tracking-wide">
+                Daily system
+              </p>
+            </div>
+          </div>
+        )}
         <button
-          onClick={handleToggleCollapse}
-          className="p-2 hover:bg-white/80 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-300 notion-hover hover:scale-105 cursor-pointer"
-          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          type="button"
+          onClick={toggle}
+          className="p-2 rounded-lg text-[var(--fg-subtle)] hover:text-[var(--fg)] hover:bg-[var(--bg-muted)]"
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {isCollapsed ? (
-            <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-          ) : (
-            <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-          )}
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
       </div>
 
-      {/* Menu Items */}
-      <div className="flex-1 p-3 space-y-1 overflow-y-auto">
-        <SidebarButton
-          onClick={onOpenDashboard}
-          icon="🏠"
-          label="Dashboard"
-          title="Dashboard"
-          isCollapsed={isCollapsed}
-        />
+      <nav className="flex-1 overflow-y-auto p-2.5 space-y-5">
+        <div className="space-y-0.5">
+          {!collapsed && (
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--fg-subtle)]">
+              Focus
+            </p>
+          )}
+          {todayItems.map((item) => (
+            <NavButton key={item.key} item={item} collapsed={collapsed} />
+          ))}
+        </div>
 
-        <SidebarButton
-          onClick={onOpenCalendar}
-          icon="📅"
-          label="Calendar"
-          title="Calendar"
-          isCollapsed={isCollapsed}
-        />
+        <div className="space-y-0.5">
+          {!collapsed && (
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--fg-subtle)]">
+              Capture
+            </p>
+          )}
+          {captureItems.map((item) => (
+            <NavButton key={item.key} item={item} collapsed={collapsed} />
+          ))}
+        </div>
 
-        <SidebarButton
-          onClick={onOpenJournal}
-          icon="📖"
-          label="Daily Journal"
-          title="Daily Journal"
-          isCollapsed={isCollapsed}
-        />
-
-        <SidebarButton
-          onClick={onOpenProblemSolving}
-          icon="🧠"
-          label="Problem Solving"
-          title="Problem Solving"
-          isCollapsed={isCollapsed}
-        />
-
-        <SidebarButton
-          href="/solved-problems"
-          icon="🧩"
-          label="Solved Problems"
-          title="Solved Problems"
-          isCollapsed={isCollapsed}
-        />
-
-        <SidebarButton
-          onClick={onOpenTrackYourself}
-          icon="🚀"
-          label="Track Yourself"
-          title="Track Yourself"
-          isCollapsed={isCollapsed}
-        />
-
-        <SidebarButton
-          href="/behavior-history"
-          icon="📊"
-          label="Behavior History"
-          title="Behavior History"
-          isCollapsed={isCollapsed}
-        />
-
-        <SidebarButton
-          href="/stats"
-          icon="📈"
-          label="Statistics"
-          title="Statistics Dashboard"
-          isCollapsed={isCollapsed}
-        />
-      </div>
-    </div>
+        <div className="space-y-0.5">
+          {!collapsed && (
+            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--fg-subtle)]">
+              Review
+            </p>
+          )}
+          {reviewItems.map((item) => (
+            <NavButton key={item.key} item={item} collapsed={collapsed} />
+          ))}
+        </div>
+      </nav>
+    </aside>
   )
 }

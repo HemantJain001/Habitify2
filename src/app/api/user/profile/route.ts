@@ -1,21 +1,14 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { requireUser } from "@/lib/server/requireUser"
+import { jsonError, jsonOk } from "@/lib/server/http"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
+    const { user: sessionUser, error } = await requireUser()
+    if (error || !sessionUser) return error!
 
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: sessionUser.id },
       select: {
         id: true,
         name: true,
@@ -23,25 +16,16 @@ export async function GET(request: NextRequest) {
         image: true,
         createdAt: true,
         userStats: true,
-      }
+      },
     })
 
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      )
+      return jsonError("User not found", 404)
     }
 
-    return NextResponse.json({
-      user,
-      session
-    })
-  } catch (error) {
-    console.error("Get user profile error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    return jsonOk({ user })
+  } catch (err) {
+    console.error("Get user profile error:", err)
+    return jsonError("Internal server error", 500)
   }
 }

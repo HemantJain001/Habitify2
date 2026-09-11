@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AttackMode Interview Prep</title>
+    <meta name="robots" content="noindex" />
+    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+      :root {
+        --bg: #f7f8fa;
+        --bg-elevated: #ffffff;
+        --bg-muted: #eef1f5;
+        --fg: #1a1f2c;
+        --fg-muted: #5b6577;
+        --fg-subtle: #8b95a8;
+        --border: #e2e7ef;
+        --accent: #c27803;
+        --accent-soft: #f8e8c8;
+        --shadow: 0 1px 2px rgba(26, 31, 44, 0.04), 0 8px 24px rgba(26, 31, 44, 0.06);
+        --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+        --display: Georgia, "Times New Roman", serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #141820;
+          --bg-elevated: #1c2230;
+          --bg-muted: #262d3c;
+          --fg: #eef1f6;
+          --fg-muted: #a7b0c0;
+          --fg-subtle: #7d8799;
+          --border: #323b4d;
+          --accent: #e0a43a;
+          --accent-soft: #3a2f1a;
+          --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        }
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: var(--font);
+        background:
+          radial-gradient(ellipse 70% 40% at 0% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 55%),
+          var(--bg);
+        color: var(--fg);
+        line-height: 1.65;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        border-bottom: 1px solid var(--border);
+        background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+        backdrop-filter: blur(10px);
+      }
+      .bar {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0.85rem 1rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      .brand {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        min-width: 0;
+        flex: 1;
+      }
+      .brand-mark {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+      }
+      .brand h1 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-family: var(--display);
+      }
+      .brand p {
+        margin: 0;
+        font-size: 0.75rem;
+        color: var(--fg-muted);
+      }
+      .tabs {
+        display: flex;
+        gap: 0.25rem;
+        padding: 0.2rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--bg-muted);
+      }
+      .tabs button {
+        border: 0;
+        background: transparent;
+        color: var(--fg-muted);
+        padding: 0.45rem 0.8rem;
+        border-radius: 9px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .tabs button.active {
+        background: var(--bg-elevated);
+        color: var(--fg);
+        box-shadow: var(--shadow);
+      }
+      .menu-btn {
+        display: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--bg-elevated);
+        cursor: pointer;
+      }
+      .layout {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+      }
+      aside {
+        position: sticky;
+        top: 61px;
+        height: calc(100vh - 61px);
+        overflow: auto;
+        border-right: 1px solid var(--border);
+        background: var(--bg-elevated);
+        padding: 1rem;
+      }
+      aside input {
+        width: 100%;
+        margin-bottom: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.55rem 0.7rem;
+        background: var(--bg);
+        color: var(--fg);
+        font-size: 0.8rem;
+      }
+      nav a {
+        display: block;
+        text-decoration: none;
+        color: var(--fg-muted);
+        font-size: 0.78rem;
+        padding: 0.35rem 0.5rem;
+        border-radius: 8px;
+        margin-bottom: 1px;
+      }
+      nav a:hover, nav a.active {
+        background: var(--accent-soft);
+        color: var(--fg);
+      }
+      main { padding: 2rem 2.25rem; min-width: 0; }
+      .hero {
+        border: 1px solid var(--border);
+        background: var(--bg-elevated);
+        border-radius: 16px;
+        padding: 1.1rem 1.25rem;
+        box-shadow: var(--shadow);
+        margin-bottom: 1.5rem;
+      }
+      .hero h2 {
+        margin: 0;
+        font-family: var(--display);
+        font-size: 1.15rem;
+      }
+      .hero p {
+        margin: 0.35rem 0 0;
+        color: var(--fg-muted);
+        font-size: 0.9rem;
+      }
+      .status {
+        padding: 3rem;
+        text-align: center;
+        color: var(--fg-muted);
+      }
+      .prose { max-width: 52rem; }
+      .prose h1, .prose h2, .prose h3 {
+        scroll-margin-top: 5rem;
+        font-family: var(--display);
+        letter-spacing: -0.02em;
+      }
+      .prose h1 {
+        font-size: 1.85rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.45rem;
+        margin: 2.2rem 0 1rem;
+      }
+      .prose h2 { font-size: 1.3rem; margin: 1.8rem 0 0.7rem; }
+      .prose h3 { font-size: 1.05rem; margin: 1.4rem 0 0.5rem; }
+      .prose a { color: var(--accent); }
+      .prose table {
+        width: 100%;
+        border-collapse: collapse;
+        display: block;
+        overflow-x: auto;
+        font-size: 0.85rem;
+        margin: 1rem 0;
+      }
+      .prose th, .prose td {
+        border: 1px solid var(--border);
+        padding: 0.45rem 0.65rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      .prose th { background: var(--bg-muted); }
+      .prose pre, .prose .code-block {
+        background: #171b24;
+        color: #e8edf7;
+        border-radius: 12px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-size: 0.8rem;
+      }
+      .prose :not(pre) > code {
+        background: var(--bg-muted);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.1rem 0.35rem;
+        font-size: 0.86em;
+      }
+      .prose blockquote {
+        margin: 1rem 0;
+        padding: 0.7rem 1rem;
+        border-left: 3px solid var(--accent);
+        background: var(--bg-muted);
+        border-radius: 0 10px 10px 0;
+        color: var(--fg-muted);
+      }
+      .prose .mermaid {
+        margin: 1.1rem 0;
+        padding: 1rem;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: var(--bg-elevated);
+        overflow-x: auto;
+        text-align: center;
+      }
+      .overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 45;
+      }
+      @media (max-width: 900px) {
+        .menu-btn { display: inline-grid; place-items: center; }
+        .layout { grid-template-columns: 1fr; }
+        aside {
+          position: fixed;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: min(100%, 300px);
+          z-index: 50;
+          transform: translateX(-105%);
+          transition: transform 0.2s ease;
+          height: 100vh;
+          padding-top: 4.5rem;
+        }
+        aside.open { transform: translateX(0); }
+        .overlay.open { display: block; }
+        main { padding: 1.25rem 1rem 2rem; }
+        .tabs { display: none; }
+        .mobile-tabs { display: grid; gap: 0.5rem; margin-bottom: 0.75rem; }
+      }
+      @media (min-width: 901px) {
+        .mobile-tabs { display: none; }
+      }
+      .mobile-tabs button {
+        text-align: left;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        border-radius: 12px;
+        padding: 0.65rem 0.75rem;
+        cursor: pointer;
+        color: var(--fg);
+      }
+      .mobile-tabs button.active {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="bar">
+        <button class="menu-btn" id="menuBtn" aria-label="Open contents">☰</button>
+        <div class="brand">
+          <div class="brand-mark">A</div>
+          <div>
+            <h1>AttackMode Interview Prep</h1>
+            <p>Study view · diagrams · searchable TOC</p>
+          </div>
+        </div>
+        <div class="tabs" id="tabs">
+          <button data-slug="review" class="active">Engineering Review</button>
+          <button data-slug="design">Design Document</button>
+          <button data-slug="architecture">Architecture</button>
+          <button data-slug="juspay">Juspay Final</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="layout">
+      <aside id="sidebar">
+        <div class="mobile-tabs" id="mobileTabs">
+          <button data-slug="review" class="active">Engineering Review</button>
+          <button data-slug="design">Design Document</button>
+          <button data-slug="architecture">Architecture</button>
+          <button data-slug="juspay">Juspay Final</button>
+        </div>
+        <input id="search" type="search" placeholder="Filter sections…" />
+        <nav id="toc"></nav>
+      </aside>
+      <main>
+        <div class="hero">
+          <h2 id="docTitle">Engineering Review</h2>
+          <p id="docBlurb">Code-grounded deep dive · 20 parts · real file paths</p>
+        </div>
+        <div class="status" id="status">Loading document…</div>
+        <article class="prose" id="article" hidden></article>
+      </main>
+    </div>
+
+    <script>
+      const DOCS = {
+        review: {
+          label: "Engineering Review",
+          blurb: "Code-grounded deep dive · real file paths",
+          url: "/docs/review.md",
+        },
+        design: {
+          label: "Design Document",
+          blurb: "Production architecture · trade-offs · interview pitch",
+          url: "/docs/design.md",
+        },
+        architecture: {
+          label: "Architecture",
+          blurb: "Standard layers · eliminated dumb decisions",
+          url: "/docs/architecture.md",
+        },
+        juspay: {
+          label: "Juspay Final Round",
+          blurb: "OS · CN · TLS · DSA · concurrency · behavioral",
+          url: "/docs/juspay.md",
+        },
+      };
+
+      const tocEl = document.getElementById("toc");
+      const articleEl = document.getElementById("article");
+      const statusEl = document.getElementById("status");
+      const searchEl = document.getElementById("search");
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("overlay");
+      let currentToc = [];
+      let activeSlug = "review";
+
+      function slugify(text) {
+        return text
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, "")
+          .trim()
+          .replace(/\s+/g, "-");
+      }
+
+      function extractToc(md) {
+        const items = [];
+        for (const line of md.split("\n")) {
+          const m = /^(#{1,3})\s+(.+)$/.exec(line);
+          if (!m) continue;
+          const text = m[2].replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").trim();
+          if (/^table of contents$/i.test(text)) continue;
+          items.push({ id: slugify(text), text, level: m[1].length });
+        }
+        return items;
+      }
+
+      function renderToc(filter = "") {
+        const q = filter.toLowerCase().trim();
+        const items = q
+          ? currentToc.filter((i) => i.text.toLowerCase().includes(q))
+          : currentToc;
+        tocEl.innerHTML = items
+          .map(
+            (i) =>
+              `<a href="#${i.id}" style="padding-left:${(i.level - 1) * 10 + 8}px">${i.text}</a>`
+          )
+          .join("");
+      }
+
+      function setActiveButtons(slug) {
+        document
+          .querySelectorAll("[data-slug]")
+          .forEach((btn) => btn.classList.toggle("active", btn.dataset.slug === slug));
+      }
+
+      function closeSidebar() {
+        sidebar.classList.remove("open");
+        overlay.classList.remove("open");
+      }
+
+      async function loadDoc(slug) {
+        const meta = DOCS[slug];
+        if (!meta) return;
+        activeSlug = slug;
+        setActiveButtons(slug);
+        document.getElementById("docTitle").textContent = meta.label;
+        document.getElementById("docBlurb").textContent = meta.blurb;
+        statusEl.hidden = false;
+        statusEl.textContent = "Loading document…";
+        articleEl.hidden = true;
+        closeSidebar();
+
+        try {
+          const res = await fetch(meta.url + "?t=" + Date.now());
+          if (!res.ok) throw new Error("Failed to load " + meta.url);
+          const md = await res.text();
+          if (!md.trim()) throw new Error("Document is empty");
+
+          currentToc = extractToc(md);
+          renderToc(searchEl.value);
+
+          const renderer = new marked.Renderer();
+          renderer.heading = function ({ text, depth }) {
+            const plain = String(text).replace(/<[^>]+>/g, "");
+            const id = slugify(plain);
+            return `<h${depth} id="${id}">${text}</h${depth}>`;
+          };
+          renderer.code = function ({ text, lang }) {
+            if (lang === "mermaid") {
+              return `<div class="mermaid">${text}</div>`;
+            }
+            const escaped = String(text)
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+            return `<pre class="code-block"><code>${escaped}</code></pre>`;
+          };
+
+          marked.setOptions({ gfm: true, breaks: false });
+          articleEl.innerHTML = marked.parse(md, { renderer });
+          statusEl.hidden = true;
+          articleEl.hidden = false;
+          window.scrollTo({ top: 0, behavior: "smooth" });
+
+          const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: dark ? "dark" : "neutral",
+            securityLevel: "loose",
+          });
+          const nodes = articleEl.querySelectorAll(".mermaid");
+          if (nodes.length) {
+            await mermaid.run({ nodes });
+          }
+        } catch (err) {
+          statusEl.hidden = false;
+          statusEl.textContent = err.message || "Failed to load document";
+        }
+      }
+
+      document.getElementById("tabs").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-slug]");
+        if (btn) loadDoc(btn.dataset.slug);
+      });
+      document.getElementById("mobileTabs").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-slug]");
+        if (btn) loadDoc(btn.dataset.slug);
+      });
+      searchEl.addEventListener("input", () => renderToc(searchEl.value));
+      document.getElementById("menuBtn").addEventListener("click", () => {
+        sidebar.classList.add("open");
+        overlay.classList.add("open");
+      });
+      overlay.addEventListener("click", closeSidebar);
+      tocEl.addEventListener("click", (e) => {
+        if (e.target.closest("a")) closeSidebar();
+      });
+
+      loadDoc("review");
+    </script>
+  </body>
+</html>

@@ -53,9 +53,9 @@ export const identityConfig = {
   brain: {
     label: 'Intelligent',
     icon: '🧠',
-    color: 'from-purple-500 to-purple-700',
-    bg: 'bg-purple-50 dark:bg-purple-900/20',
-    border: 'border-purple-200 dark:border-purple-800',
+    color: 'from-sky-500 to-blue-600',
+    bg: 'bg-sky-50 dark:bg-sky-950/30',
+    border: 'border-sky-200/80 dark:border-sky-800/50',
     categories: [
       { id: 'learning', name: 'Learning & Study', description: 'Acquire new knowledge and skills' },
       { id: 'problem-solving', name: 'Problem Solving', description: 'Tackle challenges and think critically' },
@@ -63,11 +63,11 @@ export const identityConfig = {
     ]
   },
   muscle: {
-    label: 'Muscular', 
+    label: 'Muscular',
     icon: '💪',
-    color: 'from-green-500 to-green-700',
-    bg: 'bg-green-50 dark:bg-green-900/20',
-    border: 'border-green-200 dark:border-green-800',
+    color: 'from-emerald-500 to-teal-600',
+    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+    border: 'border-emerald-200/80 dark:border-emerald-800/50',
     categories: [
       { id: 'strength', name: 'Strength Training', description: 'Build physical strength and power' },
       { id: 'cardio', name: 'Cardiovascular Health', description: 'Improve heart health and endurance' },
@@ -76,10 +76,10 @@ export const identityConfig = {
   },
   money: {
     label: 'Rich',
-    icon: '💰', 
-    color: 'from-yellow-500 to-yellow-700',
-    bg: 'bg-yellow-50 dark:bg-yellow-900/20',
-    border: 'border-yellow-200 dark:border-yellow-800',
+    icon: '💰',
+    color: 'from-amber-500 to-orange-600',
+    bg: 'bg-amber-50 dark:bg-amber-950/25',
+    border: 'border-amber-200/80 dark:border-amber-800/50',
     categories: [
       { id: 'income', name: 'Income Generation', description: 'Increase earning potential and income streams' },
       { id: 'investment', name: 'Investment & Savings', description: 'Grow wealth through smart investments' },

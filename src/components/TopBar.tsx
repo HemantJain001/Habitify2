@@ -1,126 +1,118 @@
 'use client'
 
-import { BookOpen, LogOut, User, TrendingUp, Brain } from 'lucide-react'
+import { Bot, Flame, LogOut, Moon, Sun, User } from 'lucide-react'
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui'
+import { useAppChrome } from '@/components/layout/AppChrome'
 
 interface TopBarProps {
-  streak: number
-  onOpenJournal: () => void
+  title?: string
+  subtitle?: string
 }
 
-interface GreetingSectionProps {
-  streak: number
-  userName?: string
-}
-
-function GreetingSection({ streak, userName }: GreetingSectionProps) {
-  const getGreeting = () => {
-    const hour = new Date().getHours()
-    if (hour < 12) return "Good morning"
-    if (hour < 18) return "Good afternoon"
-    return "Good evening"
-  }
-
-  return (
-    <div>
-      <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-1">
-        {getGreeting()}, {userName || "Warrior"} 👋
-      </h1>
-      <div className="flex items-center gap-2">
-        <span className="text-lg">🔥</span>
-        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-          Day {streak} streak
-        </span>
-      </div>
-    </div>
-  )
-}
-
-export function TopBar({ streak, onOpenJournal }: TopBarProps) {
+export function TopBar({ title, subtitle }: TopBarProps) {
   const { data: session } = useSession()
+  const { streak, darkMode, toggleDarkMode, openCoach } = useAppChrome()
 
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/auth/signin" })
-  }
+  const hour = new Date().getHours()
+  const greeting =
+    hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
+
+  const dateLabel = new Date().toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
 
   return (
-    <header className="glass sticky top-0 z-30 flex items-center justify-between px-8 py-5 backdrop-blur-md border-b border-white/20 dark:border-gray-800/30 shadow-sm">
-      {/* Left Side - Greeting & Streak */}
-      <div className="flex items-center gap-6">
-        <GreetingSection streak={streak} userName={session?.user?.name || undefined} />
-      </div>
-
-      {/* Center - Action Buttons */}
-      <div className="flex items-center gap-3">
-        <Button
-          onClick={onOpenJournal}
-          variant="primary"
-          size="md"
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <BookOpen className="w-4 h-4 mr-2" />
-          Journal
-        </Button>
-        
-        <Link href="/behavior-history">
-          <Button
-            variant="secondary"
-            size="md"
-            className="hover:bg-purple-50 dark:hover:bg-purple-900/20"
-          >
-            <TrendingUp className="w-4 h-4 mr-2" />
-            History
-          </Button>
-        </Link>
-        
-        <Link href="/solved-problems">
-          <Button
-            variant="secondary"
-            size="md"
-            className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
-          >
-            <Brain className="w-4 h-4 mr-2" />
-            Problems
-          </Button>
-        </Link>
-      </div>
-
-      {/* Right Side - Profile */}
-      <div className="flex items-center gap-4">
-        {session?.user ? (
-          <div className="flex items-center gap-2">
-            {/* User Info */}
-            <div className="flex items-center gap-2 px-3 py-2 bg-white/60 dark:bg-gray-800/60 rounded-lg backdrop-blur-sm">
-              {session.user.image ? (
-                <img 
-                  src={session.user.image} 
-                  alt="Profile" 
-                  className="w-6 h-6 rounded-full"
-                />
-              ) : (
-                <User className="w-4 h-4" />
+    <header className="sticky top-0 z-30 glass border-b border-[var(--border)]">
+      <div className="flex items-center justify-between gap-3 px-4 sm:px-6 md:px-8 h-14 md:h-16">
+        <div className="min-w-0">
+          {title ? (
+            <>
+              <h1 className="font-display text-base md:text-lg font-semibold text-[var(--fg)] truncate">
+                {title}
+              </h1>
+              {subtitle && (
+                <p className="text-xs text-[var(--fg-muted)] truncate">{subtitle}</p>
               )}
-              <span className="text-sm font-medium">{session.user.name}</span>
+            </>
+          ) : (
+            <>
+              <p className="text-[11px] text-[var(--fg-subtle)] uppercase tracking-[0.12em]">
+                {dateLabel}
+              </p>
+              <h1 className="font-display text-base md:text-lg font-semibold text-[var(--fg)] truncate">
+                {greeting}
+                {session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}
+              </h1>
+            </>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--bg-elevated)] px-2.5 py-1 text-xs font-medium text-[var(--fg)]">
+            <Flame className="w-3.5 h-3.5 text-[var(--accent)]" />
+            {streak} day streak
+          </span>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="px-2"
+            onClick={toggleDarkMode}
+            aria-label="Toggle theme"
+          >
+            {darkMode ? (
+              <Sun className="w-4 h-4 text-[var(--accent)]" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
+          </Button>
+
+          <Button variant="primary" size="sm" onClick={openCoach} className="hidden sm:inline-flex">
+            <Bot className="w-3.5 h-3.5" />
+            Coach
+          </Button>
+
+          {session?.user ? (
+            <div className="flex items-center gap-1">
+              <div className="hidden md:flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-elevated)] pl-1 pr-2.5 py-1">
+                {session.user.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={session.user.image}
+                    alt=""
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="w-6 h-6 rounded-full bg-[var(--bg-muted)] flex items-center justify-center">
+                    <User className="w-3 h-3 text-[var(--fg-muted)]" />
+                  </span>
+                )}
+                <span className="text-xs font-medium text-[var(--fg)] max-w-[90px] truncate">
+                  {session.user.name?.split(' ')[0]}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-2"
+                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+                aria-label="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
             </div>
-            
-            {/* Sign Out Button */}
-            <Button
-              onClick={handleSignOut}
-              variant="ghost"
-              size="sm"
-              className="text-gray-600 hover:text-gray-800"
-            >
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 px-3 py-2 bg-white/60 dark:bg-gray-800/60 rounded-lg backdrop-blur-sm">
-            <span className="text-sm">👤</span>
-          </div>
-        )}
+          ) : (
+            <Link href="/auth/signin">
+              <Button variant="secondary" size="sm">
+                Sign in
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   )

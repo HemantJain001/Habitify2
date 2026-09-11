@@ -27,16 +27,6 @@ export function PowerSystem({ brain, muscle, money, todos: propTodos }: PowerSys
   const deleteTodoMutation = useDeletePowerSystemTodo()
   
   const todos = propTodos || powerSystemData?.powerSystemTodos || []
-  
-  // Debug: Log the todos to see what we're getting
-  console.log('PowerSystem component debug:', {
-    propTodosLength: propTodos?.length || 0,
-    propTodos: propTodos,
-    apiDataLength: powerSystemData?.powerSystemTodos?.length || 0,
-    finalTodosLength: todos.length,
-    usingProps: !!propTodos,
-    isLoading
-  })
   const [editMode, setEditMode] = useState(false)
   const [editingTodo, setEditingTodo] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
@@ -80,20 +70,10 @@ export function PowerSystem({ brain, muscle, money, todos: propTodos }: PowerSys
     }
     
     const todo = todos.find(t => t.id === todoId)
-    if (!todo) {
-      console.warn('Todo not found:', todoId)
-      return
-    }
+    if (!todo) return
 
     const today = new Date().toISOString().split('T')[0]
     const isCurrentlyCompleted = isCompletedToday(todo)
-    
-    console.log('Toggling todo:', {
-      todoId,
-      title: todo.title,
-      newCompleted: !isCurrentlyCompleted,
-      newDate: today
-    })
     
     try {
       await updateTodoMutation.mutateAsync({
@@ -191,154 +171,167 @@ export function PowerSystem({ brain, muscle, money, todos: propTodos }: PowerSys
   }, [])
 
   return (
-    <div className="glass backdrop-blur-sm rounded-2xl p-6 border border-white/20 dark:border-gray-800/30 shadow-lg">
+    <div className="surface p-6 animate-fade-up stagger-2">
       {isLoading ? (
-        <div className="flex items-center justify-center py-8">
-          <div className="text-gray-600 dark:text-gray-400">Loading power system...</div>
+        <div className="flex items-center justify-center py-10 text-sm text-[var(--fg-muted)]">
+          Loading power system…
         </div>
       ) : (
         <>
-          {/* Header with Progress Tracking */}
-          <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-            Power System
-          </h2>
-          <div className="flex items-center gap-3">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--fg-subtle)] mb-1">
+                Identities
+              </p>
+              <h2 className="font-display text-lg font-semibold text-[var(--fg)]">
+                Power System
+              </h2>
+            </div>
             <button
-              onClick={() => {
-                console.log('🎛️ Edit Goals button clicked, current editMode:', editMode)
-                setEditMode(!editMode)
-                console.log('🎛️ Edit mode will be:', !editMode)
-              }}
+              type="button"
+              onClick={() => setEditMode(!editMode)}
               className={cn(
-                "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                 editMode
-                  ? "bg-blue-500 text-white hover:bg-blue-600"
-                  : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                  ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
+                  : 'bg-[var(--bg-muted)] text-[var(--fg-muted)] hover:text-[var(--fg)] border border-[var(--border)]'
               )}
             >
               <Edit3 className="w-3 h-3" />
-              {editMode ? 'Exit Edit' : 'Edit Goals'}
+              {editMode ? 'Done' : 'Edit'}
             </button>
           </div>
-        </div>
-      </div>
-      
-      <div className="space-y-4">
-        {identities.map(({ key, data }) => {
-          const config = identityConfig[key]
-          const isCollapsed = collapsed[key]
-          
-          return (
-            <div 
-              key={key}
-              className="border border-white/30 dark:border-gray-700/50 rounded-xl overflow-hidden notion-hover backdrop-blur-sm bg-white/40 dark:bg-gray-800/40"
-            >
-              {/* Header */}
-              <button
-                onClick={() => toggleCollapse(key)}
-                className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/30 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-all duration-300 notion-hover"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{config.icon}</span>
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                    {config.label}
-                  </h3>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-full">
-                      {getCompletedTodayCount(key)}/{getActiveTodosCount(key)} done
-                    </span>
-                  </div>
-                </div>
-                
-                <ChevronDown className={cn(
-                  "w-4 h-4 text-gray-500 dark:text-gray-400 chevron-transition",
-                  isCollapsed ? "chevron-down" : "chevron-up"
-                )} />
-              </button>
 
-              {/* Content */}
-              <div className={cn(
-                "power-system-content",
-                isCollapsed ? "collapsed" : "expanded"
-              )}>
-                <div className="px-4 pb-4 bg-white dark:bg-[#191919]">
-                  {/* Interactive Goals List */}
-                  <div className="space-y-2">
-                    {identityTodos[key as keyof typeof identityTodos]?.map((todo) => (
-                      <PowerSystemTodoItem
-                        key={todo.id}
-                        todo={todo}
-                        editMode={editMode}
-                        isEditing={editingTodo === todo.id}
-                        editText={editText}
-                        isLoading={updateTodoMutation.isPending || deleteTodoMutation.isPending}
-                        onToggleComplete={handleToggleComplete}
-                        onStartEditing={startEditing}
-                        onEditTodo={handleEditTodo}
-                        onDeleteTodo={handleDeleteTodo}
-                        onCancelEditing={cancelEditing}
-                        onSetEditText={setEditText}
-                      />
-                    ))}
-                    
-                    {/* Add New Todo */}
-                    {editMode && addingToIdentity === key && (
-                      <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <input
-                          type="text"
-                          value={newTodoText}
-                          onChange={(e) => setNewTodoText(e.target.value)}
-                          className="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-green-500 dark:bg-gray-800 dark:text-white"
-                          placeholder="Enter new goal..."
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleAddTodo(key)
-                            if (e.key === 'Escape') cancelAdding()
-                          }}
-                        />
-                        <button
-                          onClick={() => handleAddTodo(key)}
-                          className="p-1 text-green-600 hover:text-green-700 transition-colors"
-                          title="Add"
-                        >
-                          <Save className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={cancelAdding}
-                          className="p-1 text-gray-600 hover:text-gray-700 transition-colors"
-                          title="Cancel"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+          <div className="space-y-3">
+            {identities.map(({ key }) => {
+              const config = identityConfig[key]
+              const isCollapsed = collapsed[key]
+
+              return (
+                <div
+                  key={key}
+                  className={cn(
+                    'rounded-xl overflow-hidden border transition-colors',
+                    config.border,
+                    'bg-[var(--bg-elevated)]'
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleCollapse(key)}
+                    className={cn(
+                      'w-full flex items-center justify-between p-3.5 transition-colors',
+                      config.bg,
+                      'hover:opacity-95'
+                    )}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-lg">{config.icon}</span>
+                      <h3 className="text-sm font-semibold text-[var(--fg)]">
+                        {config.label}
+                      </h3>
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[var(--bg-elevated)]/80 text-[var(--fg-muted)] tabular-nums border border-[var(--border)]">
+                        {getCompletedTodayCount(key)}/{getActiveTodosCount(key)}
+                      </span>
+                    </div>
+
+                    <ChevronDown
+                      className={cn(
+                        'w-4 h-4 text-[var(--fg-subtle)] chevron-transition',
+                        isCollapsed ? 'chevron-down' : 'chevron-up'
+                      )}
+                    />
+                  </button>
+
+                  <div
+                    className={cn(
+                      'power-system-content',
+                      isCollapsed ? 'collapsed' : 'expanded'
+                    )}
+                  >
+                    <div className="px-3.5 pb-3.5 pt-1">
+                      <div className="space-y-1">
+                        {identityTodos[key as keyof typeof identityTodos]?.map(
+                          (todo) => (
+                            <PowerSystemTodoItem
+                              key={todo.id}
+                              todo={todo}
+                              editMode={editMode}
+                              isEditing={editingTodo === todo.id}
+                              editText={editText}
+                              isLoading={
+                                (updateTodoMutation.isPending &&
+                                  updateTodoMutation.variables?.id === todo.id) ||
+                                (deleteTodoMutation.isPending &&
+                                  deleteTodoMutation.variables === todo.id)
+                              }
+                              onToggleComplete={handleToggleComplete}
+                              onStartEditing={startEditing}
+                              onEditTodo={handleEditTodo}
+                              onDeleteTodo={handleDeleteTodo}
+                              onCancelEditing={cancelEditing}
+                              onSetEditText={setEditText}
+                            />
+                          )
+                        )}
+
+                        {editMode && addingToIdentity === key && (
+                          <div className="flex items-center gap-2 p-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-muted)]">
+                            <input
+                              type="text"
+                              value={newTodoText}
+                              onChange={(e) => setNewTodoText(e.target.value)}
+                              className="flex-1 px-2 py-1.5 text-sm bg-transparent border-none outline-none text-[var(--fg)] placeholder:text-[var(--fg-subtle)]"
+                              placeholder="Enter new goal…"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleAddTodo(key)
+                                if (e.key === 'Escape') cancelAdding()
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleAddTodo(key)}
+                              className="p-1.5 text-[var(--success)] hover:opacity-80"
+                              title="Add"
+                            >
+                              <Save className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelAdding}
+                              className="p-1.5 text-[var(--fg-muted)] hover:text-[var(--fg)]"
+                              title="Cancel"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+
+                        {editMode && addingToIdentity !== key && (
+                          <button
+                            type="button"
+                            onClick={() => setAddingToIdentity(key)}
+                            className="w-full flex items-center gap-2 p-2.5 border border-dashed border-[var(--border-strong)] rounded-xl hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]/40 transition-colors text-[var(--fg-muted)] hover:text-[var(--fg)]"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span className="text-sm font-medium">Add goal</span>
+                          </button>
+                        )}
+
+                        {getActiveTodosCount(key) === 0 && !editMode && (
+                          <div className="text-sm text-[var(--fg-muted)] text-center py-5 rounded-xl border border-dashed border-[var(--border)]">
+                            No goals yet. Tap Edit to add some.
+                          </div>
+                        )}
                       </div>
-                    )}
-                    
-                    {/* Add Goal Button */}
-                    {editMode && addingToIdentity !== key && (
-                      <button
-                        onClick={() => setAddingToIdentity(key)}
-                        className="w-full flex items-center gap-2 p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-                      >
-                        <Plus className="w-4 h-4" />
-                        <span className="text-sm font-medium">Add new goal</span>
-                      </button>
-                    )}
-                    
-                    {getActiveTodosCount(key) === 0 && !editMode && (
-                      <div className="text-sm text-gray-500 dark:text-gray-500 text-center py-6 bg-gray-50 dark:bg-gray-800/30 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
-                        No goals set yet. Click "Edit Goals" to add some!
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      </>
+              )
+            })}
+          </div>
+        </>
       )}
     </div>
   )

@@ -11,20 +11,26 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', isLoading, children, ...props }, ref) => {
-    const baseClasses = "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-    
+    const baseClasses =
+      'inline-flex items-center justify-center rounded-[10px] font-medium tracking-tight transition-all duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer'
+
     const variants = {
-      primary: "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 focus:ring-blue-500 shadow-md hover:shadow-lg",
-      secondary: "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 focus:ring-gray-500",
-      ghost: "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 focus:ring-gray-500",
-      icon: "p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors notion-hover",
-      danger: "bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 shadow-md hover:shadow-lg"
+      primary:
+        'bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)] shadow-[0_1px_2px_oklch(0.4_0.05_55/0.2)] hover:shadow-[0_4px_12px_oklch(0.5_0.1_55/0.25)]',
+      secondary:
+        'bg-[var(--bg-muted)] text-[var(--fg)] border border-[var(--border)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-elevated)]',
+      ghost:
+        'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--bg-muted)]',
+      icon:
+        'p-2 text-[var(--fg-subtle)] hover:text-[var(--fg)] hover:bg-[var(--bg-muted)] rounded-[10px]',
+      danger:
+        'bg-[var(--danger)] text-white hover:opacity-90 shadow-sm',
     }
-    
+
     const sizes = {
-      sm: "h-8 px-3 text-sm",
-      md: "h-10 px-4 text-sm",
-      lg: "h-12 px-6 text-base"
+      sm: 'h-8 px-3 text-xs gap-1.5',
+      md: 'h-10 px-4 text-sm gap-2',
+      lg: 'h-11 px-5 text-sm gap-2',
     }
 
     return (
@@ -33,7 +39,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           baseClasses,
           variants[variant],
           sizes[size],
-          isLoading && "cursor-not-allowed",
+          isLoading && 'cursor-not-allowed',
           className
         )}
         ref={ref}
@@ -41,7 +47,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+          <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
         ) : null}
         {children}
       </button>

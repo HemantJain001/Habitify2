@@ -47,7 +47,7 @@ export function AICoach({ isOpen, onClose }: AICoachProps) {
           insightLoaded.current = true
         }
       } catch {
-        // Keep default welcome message
+        // keep default
       }
     })()
 
@@ -91,10 +91,7 @@ export function AICoach({ isOpen, onClose }: AICoachProps) {
       })
 
       const data = await res.json().catch(() => ({}))
-
-      if (!res.ok) {
-        throw new Error(data.error || `Request failed (${res.status})`)
-      }
+      if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`)
 
       setMessages((prev) => [
         ...prev,
@@ -105,16 +102,11 @@ export function AICoach({ isOpen, onClose }: AICoachProps) {
         },
       ])
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : 'Failed to reach AI Coach'
+      const msg = err instanceof Error ? err.message : 'Failed to reach AI Coach'
       setError(msg)
       setMessages((prev) => [
         ...prev,
-        {
-          id: `e-${Date.now()}`,
-          text: `Sorry — ${msg}`,
-          sender: 'coach',
-        },
+        { id: `e-${Date.now()}`, text: `Sorry — ${msg}`, sender: 'coach' },
       ])
     } finally {
       setIsLoading(false)
@@ -125,7 +117,7 @@ export function AICoach({ isOpen, onClose }: AICoachProps) {
     <>
       <div
         className={cn(
-          'fixed inset-0 bg-black/50 z-40 transition-opacity duration-300',
+          'fixed inset-0 bg-[oklch(0.2_0.02_255/0.45)] backdrop-blur-[2px] z-40 transition-opacity duration-300',
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
         onClick={onClose}
@@ -133,34 +125,37 @@ export function AICoach({ isOpen, onClose }: AICoachProps) {
 
       <div
         className={cn(
-          'fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 z-50 transform transition-transform duration-300 flex flex-col',
+          'fixed top-0 right-0 h-full w-full max-w-md z-50 flex flex-col',
+          'bg-[var(--bg-elevated)] border-l border-[var(--border)] shadow-[var(--shadow-lg)]',
+          'transform transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] flex items-center justify-center">
+              <Bot className="w-4.5 h-4.5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="font-display text-base font-semibold text-[var(--fg)]">
                 AI Coach
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Grounded in your AttackMode data
+              <p className="text-[11px] text-[var(--fg-subtle)]">
+                Grounded in your activity
               </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="p-2 rounded-lg text-[var(--fg-subtle)] hover:text-[var(--fg)] hover:bg-[var(--bg-muted)] transition-colors"
             aria-label="Close AI Coach"
           >
-            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -171,33 +166,31 @@ export function AICoach({ isOpen, onClose }: AICoachProps) {
             >
               <div
                 className={cn(
-                  'max-w-[85%] p-3 rounded-lg',
+                  'max-w-[88%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap',
                   msg.sender === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                    ? 'bg-[var(--accent)] text-[var(--accent-fg)] rounded-br-md'
+                    : 'bg-[var(--bg-muted)] text-[var(--fg)] rounded-bl-md border border-[var(--border)]'
                 )}
               >
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {msg.text}
-                </p>
+                {msg.text}
               </div>
             </div>
           ))}
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-sm">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Thinking with your activity data…
+              <div className="inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-[var(--bg-muted)] border border-[var(--border)] text-xs text-[var(--fg-muted)]">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--accent)]" />
+                Thinking with your data…
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-6 border-t border-gray-200 dark:border-gray-800 space-y-2">
+        <div className="p-4 border-t border-[var(--border)] space-y-2">
           {error && (
-            <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+            <p className="text-xs text-[var(--danger)] px-1">{error}</p>
           )}
           <div className="flex gap-2">
             <input
@@ -211,13 +204,14 @@ export function AICoach({ isOpen, onClose }: AICoachProps) {
                 }
               }}
               disabled={isLoading}
-              placeholder="Ask your AI coach..."
-              className="flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-60"
+              placeholder="Ask your coach…"
+              className="flex-1 px-3.5 py-2.5 rounded-[10px] border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] disabled:opacity-60"
             />
             <button
+              type="button"
               onClick={handleSendMessage}
               disabled={isLoading || !message.trim()}
-              className="p-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              className="p-2.5 rounded-[10px] bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)] disabled:opacity-45 disabled:cursor-not-allowed transition-colors"
               aria-label="Send message"
             >
               {isLoading ? (

@@ -1,61 +1,46 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { NextRequest } from "next/server"
+import { requireUser } from "@/lib/server/requireUser"
+import { jsonError, jsonOk } from "@/lib/server/http"
 import { prisma } from "@/lib/prisma"
 
 // GET /api/problems - Get problem solving entries for the current user
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
+    const { user, error } = await requireUser()
+    if (error || !user) return error!
 
     const { searchParams } = new URL(request.url)
-    const limit = searchParams.get('limit')
-    const category = searchParams.get('category')
+    const limit = searchParams.get("limit")
+    const category = searchParams.get("category")
 
-    const whereClause: any = { userId: session.user.id }
-    
+    const whereClause: any = { userId: user.id }
+
     if (category) {
       whereClause.problemCategory = category
     }
 
     const problemEntries = await prisma.problemSolvingEntry.findMany({
       where: whereClause,
-      orderBy: { createdAt: 'desc' },
-      take: limit ? parseInt(limit) : undefined
+      orderBy: { createdAt: "desc" },
+      take: limit ? parseInt(limit) : undefined,
     })
 
-    return NextResponse.json({ problemEntries })
-  } catch (error) {
-    console.error("Get problem entries error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    return jsonOk({ problemEntries })
+  } catch (err) {
+    console.error("Get problem entries error:", err)
+    return jsonError("Internal server error", 500)
   }
 }
 
 // POST /api/problems - Create a new problem solving entry
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
+    const { user, error } = await requireUser()
+    if (error || !user) return error!
 
-    const { 
-      problemBehavior, 
-      triggerPattern, 
+    const {
+      problemBehavior,
+      triggerPattern,
       isDaily,
       preventiveStrategy,
       wrongPathReaction,
@@ -68,14 +53,11 @@ export async function POST(request: NextRequest) {
       controlSource,
       actionablePower,
       longTermSolution,
-      isPinned
+      isPinned,
     } = await request.json()
 
     if (!problemBehavior || !triggerPattern) {
-      return NextResponse.json(
-        { error: "Problem behavior and trigger pattern are required" },
-        { status: 400 }
-      )
+      return jsonError("Problem behavior and trigger pattern are required", 400)
     }
 
     const problemEntry = await prisma.problemSolvingEntry.create({
@@ -95,14 +77,14 @@ export async function POST(request: NextRequest) {
         actionablePower,
         longTermSolution,
         isPinned: isPinned || false,
-        userId: session.user.id,
-      }
+        userId: user.id,
+      },
     })
 
     await prisma.userStats.upsert({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       create: {
-        userId: session.user.id,
+        userId: user.id,
         totalProblemsAnalyzed: 1,
       },
       update: {
@@ -110,12 +92,9 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ problemEntry }, { status: 201 })
-  } catch (error) {
-    console.error("Create problem entry error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    return jsonOk({ problemEntry }, 201)
+  } catch (err) {
+    console.error("Create problem entry error:", err)
+    return jsonError("Internal server error", 500)
   }
 }

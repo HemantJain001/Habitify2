@@ -1,43 +1,34 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { NextRequest } from "next/server"
+import { requireUser } from "@/lib/server/requireUser"
+import { jsonError, jsonOk } from "@/lib/server/http"
 import { prisma } from "@/lib/prisma"
 
 // GET /api/problems/[id]
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const { user, error } = await requireUser()
+    if (error || !user) return error!
 
     const { id } = await params
 
     const problemEntry = await prisma.problemSolvingEntry.findFirst({
       where: {
         id,
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 
     if (!problemEntry) {
-      return NextResponse.json(
-        { error: "Problem entry not found" },
-        { status: 404 }
-      )
+      return jsonError("Problem entry not found", 404)
     }
 
-    return NextResponse.json({ problemEntry })
-  } catch (error) {
-    console.error("Get problem entry error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    return jsonOk({ problemEntry })
+  } catch (err) {
+    console.error("Get problem entry error:", err)
+    return jsonError("Internal server error", 500)
   }
 }
 
@@ -47,11 +38,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const { user, error } = await requireUser()
+    if (error || !user) return error!
 
     const { id } = await params
     const {
@@ -75,15 +63,12 @@ export async function PUT(
     const existingEntry = await prisma.problemSolvingEntry.findFirst({
       where: {
         id,
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 
     if (!existingEntry) {
-      return NextResponse.json(
-        { error: "Problem entry not found" },
-        { status: 404 }
-      )
+      return jsonError("Problem entry not found", 404)
     }
 
     const problemEntry = await prisma.problemSolvingEntry.update({
@@ -113,42 +98,33 @@ export async function PUT(
       },
     })
 
-    return NextResponse.json({ problemEntry })
-  } catch (error) {
-    console.error("Update problem entry error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    return jsonOk({ problemEntry })
+  } catch (err) {
+    console.error("Update problem entry error:", err)
+    return jsonError("Internal server error", 500)
   }
 }
 
 // DELETE /api/problems/[id]
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const { user, error } = await requireUser()
+    if (error || !user) return error!
 
     const { id } = await params
 
     const existingEntry = await prisma.problemSolvingEntry.findFirst({
       where: {
         id,
-        userId: session.user.id,
+        userId: user.id,
       },
     })
 
     if (!existingEntry) {
-      return NextResponse.json(
-        { error: "Problem entry not found" },
-        { status: 404 }
-      )
+      return jsonError("Problem entry not found", 404)
     }
 
     await prisma.problemSolvingEntry.delete({
@@ -156,9 +132,9 @@ export async function DELETE(
     })
 
     await prisma.userStats.upsert({
-      where: { userId: session.user.id },
+      where: { userId: user.id },
       create: {
-        userId: session.user.id,
+        userId: user.id,
         totalProblemsAnalyzed: 0,
       },
       update: {
@@ -166,12 +142,9 @@ export async function DELETE(
       },
     })
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error("Delete problem entry error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    return jsonOk({ success: true })
+  } catch (err) {
+    console.error("Delete problem entry error:", err)
+    return jsonError("Internal server error", 500)
   }
 }

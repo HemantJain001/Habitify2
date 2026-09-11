@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { NextRequest } from "next/server"
+import { requireUser } from "@/lib/server/requireUser"
+import { jsonError, jsonOk } from "@/lib/server/http"
+import { isPowerCategory } from "@/lib/server/constants"
 import { prisma } from "@/lib/prisma"
 
 // PUT /api/power-system/[id] - Update a power system todo
@@ -9,46 +10,39 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
+    const { user, error } = await requireUser()
+    if (error || !user) return error!
 
     const { id } = await params
     const { title, category, completed, date } = await request.json()
 
-    // Verify todo belongs to user
-    const existingTodo = await prisma.powerSystemTodo.findFirst({
-      where: {
-        id: id,
-        userId: session.user.id
-      }
-    })
-
-    if (!existingTodo) {
-      return NextResponse.json(
-        { error: "Power system todo not found" },
-        { status: 404 }
-      )
+    if (category !== undefined && !isPowerCategory(category)) {
+      return jsonError("Category must be brain, muscle, or money", 400)
     }
 
-    // Build update data with only provided fields
-    const updateData: any = {}
+    const updateData: {
+      title?: string
+      category?: string
+      date?: Date
+      completed?: boolean
+      updatedAt: Date
+    } = { updatedAt: new Date() }
     if (title !== undefined) updateData.title = title
     if (category !== undefined) updateData.category = category
     if (date !== undefined) updateData.date = new Date(date)
     if (completed !== undefined) updateData.completed = completed
 
-    // Always update updatedAt timestamp
-    updateData.updatedAt = new Date()
-
-    const powerSystemTodo = await prisma.powerSystemTodo.update({
-      where: { id: id },
+    const updated = await prisma.powerSystemTodo.updateMany({
+      where: { id, userId: user.id },
       data: updateData,
+    })
+
+    if (updated.count === 0) {
+      return jsonError("Power system todo not found", 404)
+    }
+
+    const powerSystemTodo = await prisma.powerSystemTodo.findFirst({
+      where: { id, userId: user.id },
       select: {
         id: true,
         title: true,
@@ -57,65 +51,54 @@ export async function PUT(
         date: true,
         createdAt: true,
         updatedAt: true,
-        userId: true
-      }
+        userId: true,
+      },
     })
 
-    return NextResponse.json({ 
+    if (!powerSystemTodo) {
+      return jsonError("Power system todo not found", 404)
+    }
+
+    return jsonOk({
       powerSystemTodo,
-      updatedFields: Object.keys(updateData).filter(key => key !== 'updatedAt')
+      updatedFields: Object.keys(updateData).filter((key) => key !== "updatedAt"),
     })
-  } catch (error) {
-    console.error("Update power system todo error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+  } catch (err) {
+    console.error("Update power system todo error:", err)
+    return jsonError("Internal server error", 500)
   }
 }
 
 // DELETE /api/power-system/[id] - Delete a power system todo
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
+    const { user, error } = await requireUser()
+    if (error || !user) return error!
 
     const { id } = await params
 
     // Verify todo belongs to user
     const existingTodo = await prisma.powerSystemTodo.findFirst({
       where: {
-        id: id,
-        userId: session.user.id
-      }
+        id,
+        userId: user.id,
+      },
     })
 
     if (!existingTodo) {
-      return NextResponse.json(
-        { error: "Power system todo not found" },
-        { status: 404 }
-      )
+      return jsonError("Power system todo not found", 404)
     }
 
     await prisma.powerSystemTodo.delete({
-      where: { id: id }
+      where: { id },
     })
 
-    return NextResponse.json({ message: "Power system todo deleted successfully" })
-  } catch (error) {
-    console.error("Delete power system todo error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    return jsonOk({ message: "Power system todo deleted successfully" })
+  } catch (err) {
+    console.error("Delete power system todo error:", err)
+    return jsonError("Internal server error", 500)
   }
 }

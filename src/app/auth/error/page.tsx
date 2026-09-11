@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import { Zap } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 
 function AuthErrorContent() {
   const searchParams = useSearchParams()
@@ -20,18 +22,20 @@ function AuthErrorContent() {
   const message = messages[error] || messages.Default
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 p-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm text-center space-y-4">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-          Sign-in error
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">{message}</p>
-        <p className="text-xs text-gray-400">Code: {error}</p>
-        <Link
-          href="/auth/signin"
-          className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-        >
-          Back to sign in
+    <div className="app-shell min-h-screen flex items-center justify-center p-6">
+      <div className="auth-panel w-full max-w-[420px] p-8 text-center space-y-5 animate-fade-up">
+        <div className="mx-auto w-10 h-10 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] flex items-center justify-center">
+          <Zap className="w-5 h-5" />
+        </div>
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-[var(--fg)]">
+            Sign-in error
+          </h1>
+          <p className="mt-2 text-sm text-[var(--fg-muted)]">{message}</p>
+          <p className="mt-2 text-[11px] text-[var(--fg-subtle)]">Code: {error}</p>
+        </div>
+        <Link href="/auth/signin">
+          <Button className="w-full">Back to sign in</Button>
         </Link>
       </div>
     </div>
@@ -42,7 +46,7 @@ export default function AuthErrorPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center text-gray-500">
+        <div className="app-shell min-h-screen flex items-center justify-center text-[var(--fg-muted)] text-sm">
           Loading…
         </div>
       }

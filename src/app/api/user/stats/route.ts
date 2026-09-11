@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { requireUser } from "@/lib/server/requireUser"
+import { jsonError, jsonOk } from "@/lib/server/http"
 import { prisma } from "@/lib/prisma"
 
 function startOfDay(d = new Date()) {
@@ -42,16 +41,14 @@ function categoryStats(
   }
 }
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+    const { user, error } = await requireUser()
+    if (error || !user) return error!
 
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const userId = user.id
 
-    const userId = session.user.id
-
+    // Create defaults once if missing; never update streak/completionRate on GET
     let userStats = await prisma.userStats.findUnique({
       where: { userId },
     })
@@ -96,7 +93,7 @@ export async function GET(_request: NextRequest) {
       }),
     ])
 
-    // Recompute streak from recent daily activity (tasks or power-system completions)
+    // Compute streak in memory only (no persistence on GET)
     const lookback = daysAgo(60)
     const [recentTasks, recentPower] = await Promise.all([
       prisma.task.findMany({
@@ -140,27 +137,6 @@ export async function GET(_request: NextRequest) {
       cursor.setDate(cursor.getDate() - 1)
     }
 
-    const longestStreak = Math.max(userStats.longestStreak, currentStreak)
-
-    const weekCompleted = weekTodos.filter((t) => t.completed).length
-    const completionRate =
-      weekTodos.length > 0 ? weekCompleted / weekTodos.length : userStats.completionRate
-
-    if (
-      currentStreak !== userStats.currentStreak ||
-      longestStreak !== userStats.longestStreak ||
-      Math.abs(completionRate - userStats.completionRate) > 0.001
-    ) {
-      userStats = await prisma.userStats.update({
-        where: { userId },
-        data: {
-          currentStreak,
-          longestStreak,
-          completionRate,
-        },
-      })
-    }
-
     const transformedStats = {
       streak: currentStreak,
       brain: categoryStats(todayTodos, "brain", weekTodos, monthTodos),
@@ -168,12 +144,9 @@ export async function GET(_request: NextRequest) {
       money: categoryStats(todayTodos, "money", weekTodos, monthTodos),
     }
 
-    return NextResponse.json(transformedStats)
-  } catch (error) {
-    console.error("Get user stats error:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    return jsonOk(transformedStats)
+  } catch (err) {
+    console.error("Get user stats error:", err)
+    return jsonError("Internal server error", 500)
   }
 }
